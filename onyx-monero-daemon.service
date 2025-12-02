@@ -1,0 +1,55 @@
+[Unit]
+Description=Onyx Monero Mining Daemon
+Documentation=man:onyx-monero-daemon(8)
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/onyx_miner_daemon.py --foreground
+User=onyx-miner
+Group=onyx-miner
+Restart=on-failure
+RestartSec=5
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/home/onyx-miner/.onyx_monero
+
+# Process isolation
+PrivateUsers=false
+PrivateMounts=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+# Network
+PrivateNetwork=false
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+
+# System call filtering
+SystemCallFilter=@system-service
+SystemCallFilter=~@privileged @resources @obsolete
+
+# Resource limits
+LimitNOFILE=1024
+MemoryMax=512M
+
+# Working directory
+WorkingDirectory=/home/onyx-miner
+RuntimeDirectory=onyx-monero
+RuntimeDirectoryMode=0755
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=onyx-monero-daemon
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# XMrig configs and runtime files
+*.json
+!config-example.json
+
+# Logs
+*.log
+daemon.log
+gui.log
+
+# Runtime files
+daemon.sock
+daemon.pid
+*.pid
+
+# User data
+.onyx_monero/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
