@@ -214,11 +214,21 @@ class OnyxMiningGUI(QMainWindow):
     
     def stop_mining(self):
         """Stop mining"""
-        response = self.controller.send_command("stop")
-        if response.get("ok"):
-            QMessageBox.information(self, "Success", "Mining stopped!")
-        else:
-            QMessageBox.critical(self, "Error", f"Failed to stop: {response.get('error', 'Unknown error')}")
+        # Use direct socket call with longer timeout for stop command
+        try:
+            sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            sock.settimeout(15)  # Longer timeout for stop
+            sock.connect(str(Path.home() / ".onyx_monero" / "daemon.sock"))
+            sock.send(json.dumps({"cmd": "stop"}).encode())
+            response = sock.recv(1024)
+            sock.close()
+            result = json.loads(response.decode())
+            if result.get("ok"):
+                QMessageBox.information(self, "Success", "Mining stopped!")
+            else:
+                QMessageBox.critical(self, "Error", f"Failed to stop: {result.get('error', 'Unknown error')}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Stop failed: {e}")
     
     def closeEvent(self, event):
         """Handle window close"""

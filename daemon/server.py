@@ -176,21 +176,23 @@ class IPCServer:
             return {"ok": False, "error": f"Command failed: {e}"}
     
     def _handle_status(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle status command - minimal response"""
+        """Handle status command - lock-free minimal response"""
         try:
-            # Simple status without locks
+            # Direct access to avoid deadlocks
+            mining_active = (self.state._mode != MiningMode.STOPPED and 
+                           self.state._xmrig_pid is not None)
             return {
                 "ok": True,
-                "mining_active": self.state._mode.value != "stopped",
-                "current_mode": self.state._mode.value,
-                "mining_threads": self.state._threads_active,
-                "total_threads": self.state._total_threads
+                "mining_active": mining_active,
+                "current_mode": self.state._mode.value if self.state._mode else "stopped",
+                "mining_threads": self.state._threads_active or 0,
+                "total_threads": self.state._total_threads or 72
             }
-        except Exception:
+        except Exception as e:
             return {
                 "ok": True,
                 "mining_active": False,
-                "current_mode": "unknown",
+                "current_mode": "stopped",
                 "mining_threads": 0,
                 "total_threads": 72
             }
