@@ -136,11 +136,12 @@ class ControlPanel(QGroupBox):
     def __init__(self):
         super().__init__("Mining Controls")
         self.setStyleSheet(OnyxTheme.get_panel_style())
-        self.init_ui()
         
         # State tracking
         self.current_mode = "stopped"
         self.daemon_connected = False
+        
+        self.init_ui()
     
     def init_ui(self):
         """Initialize control panel UI"""
@@ -160,7 +161,7 @@ class ControlPanel(QGroupBox):
         self.money_hunter_button.setStyleSheet(OnyxTheme.get_button_style("primary"))
         self.money_hunter_button.setFont(FontManager.get_primary_font(13, 600))
         self.money_hunter_button.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        self.money_hunter_button.setMinimumHeight(48)
+        self.money_hunter_button.setMinimumHeight(52)
         
         # Stop button
         self.stop_button = QPushButton("Stop Mining")
@@ -221,8 +222,8 @@ class LogPanel(QGroupBox):
         self.log_text.setStyleSheet(OnyxTheme.get_log_panel_style())
         self.log_text.setFont(FontManager.get_monospace_font(10))
         self.log_text.setReadOnly(True)
-        self.log_text.setMaximumHeight(150)
-        self.log_text.setMinimumHeight(120)
+        self.log_text.setMaximumHeight(180)
+        self.log_text.setMinimumHeight(150)
         
         layout.addWidget(self.log_text)
         
@@ -262,7 +263,7 @@ class OnyxMinerMainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("Onyx Monero Mining Dashboard")
-        self.setFixedSize(600, 500)
+        self.setFixedSize(700, 650)
         
         # Apply theme
         self.setStyleSheet(OnyxTheme.get_main_window_style())
@@ -290,8 +291,8 @@ class OnyxMinerMainWindow(QMainWindow):
         self.setCentralWidget(central_widget)
         
         layout = QVBoxLayout(central_widget)
-        layout.setContentsMargins(16, 16, 16, 16)
-        layout.setSpacing(16)
+        layout.setContentsMargins(20, 20, 20, 20)
+        layout.setSpacing(20)
         
         # Header
         header_label = QLabel("Onyx Monero Mining Dashboard")
