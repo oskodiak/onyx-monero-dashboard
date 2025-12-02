@@ -5,6 +5,7 @@ Onyx Digital Intelligence Development
 """
 
 import sys
+import logging
 from pathlib import Path
 from PyQt6.QtWidgets import (QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, 
                             QPushButton, QLabel, QGroupBox, QTextEdit, QFrame,
@@ -14,6 +15,8 @@ from PyQt6.QtGui import QFont, QIcon
 
 from .theme import OnyxTheme, FontManager
 from .ipc_client import IPCClient, ConnectionStatus
+
+logger = logging.getLogger(__name__)
 
 class StatusPanel(QGroupBox):
     """Mining status display panel"""
@@ -317,12 +320,8 @@ class OnyxMinerMainWindow(QMainWindow):
         layout.addWidget(self.control_panel)
         
         # Connect control signals
-        self.control_panel.background_button.clicked.connect(
-            lambda: self.start_mining("background")
-        )
-        self.control_panel.money_hunter_button.clicked.connect(
-            lambda: self.start_mining("money_hunter")
-        )
+        self.control_panel.background_button.clicked.connect(self.start_background_mining)
+        self.control_panel.money_hunter_button.clicked.connect(self.start_money_hunter_mining)
         self.control_panel.stop_button.clicked.connect(self.stop_mining)
         
         # Log panel
@@ -370,6 +369,14 @@ class OnyxMinerMainWindow(QMainWindow):
         """Handle error message"""
         self.log_panel.add_log_message(f"ERROR: {error_message}")
     
+    def start_background_mining(self):
+        """Start background mining"""
+        self.start_mining("background")
+    
+    def start_money_hunter_mining(self):
+        """Start money hunter mining"""
+        self.start_mining("money_hunter")
+    
     def start_mining(self, mode: str):
         """Start mining with specified mode"""
         if not self.ipc_client.is_connected():
@@ -413,6 +420,18 @@ class OnyxMinerMainWindow(QMainWindow):
     
     def closeEvent(self, event):
         """Handle window close"""
-        # Stop polling when window closes
-        self.ipc_client.stop_polling()
-        event.accept()
+        try:
+            # Stop polling when window closes
+            self.ipc_client.stop_polling()
+            
+            # Disconnect all signals to prevent orphaned connections
+            self.ipc_client.status_updated.disconnect()
+            self.ipc_client.connection_changed.disconnect()
+            self.ipc_client.error_occurred.disconnect()
+            
+            # Accept the close event
+            event.accept()
+        except Exception as e:
+            # Force close if cleanup fails
+            logger.warning(f"Error during close cleanup: {e}")
+            event.accept()

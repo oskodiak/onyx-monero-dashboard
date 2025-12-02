@@ -1,366 +1,209 @@
 # Onyx Monero Mining Dashboard
 
-**Professional XMrig Mining Control with Arctic Terminal Interface**
+**Professional XMrig mining controller with intelligent resource management for Linux/NixOS systems.**
 
 *Developed by Onyx Digital Intelligence Development*
 
 ## Overview
 
-The Onyx Monero Mining Dashboard is a **professional-grade mining control system** featuring a background daemon for process management and a sleek GUI client with the Arctic Terminal theme. Built for **safety, reliability, and enterprise-grade control**.
+The Onyx Monero Mining Dashboard provides enterprise-grade control over XMrig mining operations with a focus on system stability, user experience, and professional deployment. Features intelligent CPU load balancing, background daemon architecture, and a modern PyQt6 interface.
 
-### Key Features
+## Key Features
 
-- **🛡️ Safe Architecture**: Daemon can run on boot but **never auto-mines**
-- **🎯 Professional Control**: Background (50% CPU) and Money Hunter (80% CPU) modes  
-- **❄️ Arctic Terminal Theme**: Clean, professional interface with ice-blue accents
-- **🔧 Process Management**: Clean xmrig lifecycle, no zombies, graceful shutdown
-- **📡 Real-time Monitoring**: Live status, hashrate, logs, and system info
-- **⚙️ Secure Configuration**: Encrypted config storage with validation
-- **🔌 IPC Communication**: Unix socket API for daemon/GUI separation
+### 🎛️ **Intelligent Mining Modes**
+- **Background Mode**: 50% CPU utilization with low process priority - designed for mining during work hours without impacting productivity
+- **Money Hunter Mode**: 80% CPU utilization with optimized priority - maximum earning potential during idle periods
+- **Clean Stop**: Ensures proper XMrig process termination and system cleanup
 
-## Architecture
+### 🏗️ **Professional Architecture**
+- **Daemon Service**: Background service with systemd integration and automatic startup
+- **IPC Communication**: Unix socket-based communication between GUI and daemon
+- **Thread Safety**: Robust state management with proper locking mechanisms
+- **Error Handling**: Comprehensive error handling and recovery mechanisms
 
+### 🖥️ **Modern Interface**
+- **PyQt6 GUI**: Clean, responsive interface with real-time status updates
+- **System Tray**: Runs in background with system tray integration
+- **Professional Styling**: Dark theme optimized for extended use
+- **Configuration Display**: Live wallet and pool configuration visibility
+
+### 🔧 **Enterprise Deployment**
+- **Single Command Install**: Automated installation with dependency verification
+- **NixOS Integration**: Native support for NixOS declarative package management  
+- **User Service**: Runs as user service (not system-wide) for security
+- **Desktop Integration**: Full desktop environment integration with application menu entries
+
+## Quick Installation
+
+### Prerequisites
+- **NixOS**: Add to your `configuration.nix`:
+```nix
+(python3.withPackages (ps: with ps; [
+  pyqt6 psutil tkinter requests bcrypt pysocks
+  # ... other packages as needed
+]))
+xmrig
 ```
-┌─────────────────────────────────────────┐
-│              GUI Client                  │  ← Arctic Terminal Interface
-│         (onyx_miner_gui.py)             │
-├─────────────────────────────────────────┤
-│             IPC Layer                   │  ← Unix Socket Communication
-│         (JSON Commands)                 │
-├─────────────────────────────────────────┤
-│           Background Daemon             │  ← Process Management
-│        (onyx_miner_daemon.py)          │
-├─────────────────────────────────────────┤
-│            XMrig Control                │  ← Mining Process
-│         (xmrig subprocess)              │
-└─────────────────────────────────────────┘
-```
 
-### Daemon + Thin GUI Design
-
-**Background Daemon**:
-- Runs headless, owns all xmrig control
-- Starts "stopped" - mining only on explicit command
-- Unix socket IPC server
-- Comprehensive logging and monitoring
-- Systemd service integration
-
-**Thin GUI Client**:
-- Communicates only with daemon via IPC
-- Real-time status updates
-- Professional Arctic Terminal theme
-- Connection-aware interface
-
-## Quick Start
-
-### On NixOS (Recommended)
-
+### Installation
 ```bash
-# 1. Clone repository
 git clone https://github.com/oskodiak/onyx-monero-dashboard.git
 cd onyx-monero-dashboard
-
-# 2. Enter development environment  
-nix-shell -p python3Packages.pyqt6 python3Packages.psutil xmrig
-
-# 3. Install system-wide
-sudo ./install.sh
-
-# 4. Configure your wallet
-sudo nano /home/onyx-miner/.onyx_monero/config.json
-
-# 5. Start daemon
-sudo systemctl start onyx-monero-daemon
-
-# 6. Launch GUI
-onyx_miner_gui.py
+chmod +x install.sh
+./install.sh
 ```
-
-### On Other Linux Distributions
-
-```bash
-# Install dependencies first
-# Ubuntu/Debian: apt install python3-pyqt6 python3-psutil xmrig
-# Arch: pacman -S python-pyqt6 python-psutil xmrig
-# Fedora: dnf install python3-PyQt6 python3-psutil xmrig
-
-# Then follow steps 1, 3-6 above
-```
-
-## Configuration
-
-### Wallet Setup
-
-Edit `/home/onyx-miner/.onyx_monero/config.json`:
-
-```json
-{
-  "wallet_address": "YOUR_MONERO_WALLET_ADDRESS",
-  "pool_url": "pool.supportxmr.com:443",
-  "worker_name": "onyx-miner", 
-  "use_ssl": true,
-  "profile_name": "My Mining Profile"
-}
-```
-
-**Required**: Replace `YOUR_MONERO_WALLET_ADDRESS` with your actual Monero wallet address.
-
-### Recommended Pools
-
-| Pool | URL | Features |
-|------|-----|----------|
-| **SupportXMR** | `pool.supportxmr.com:443` | Low 0.1 XMR minimum, reliable, SSL |
-| **MineXMR** | `pool.minexmr.com:443` | Large pool, stable payouts |
-| **MoneroOcean** | `gulf.moneroocean.stream:10128` | Algorithm switching |
 
 ## Usage
 
-### Mining Modes
+### GUI Control
+Launch from applications menu: **"Onyx Monero Mining Dashboard"**
 
-**Background Mining**:
-- Uses ~50% of CPU threads
-- Low priority process  
-- Designed to not interfere with work
-- Perfect for daily computer use
-
-**Money Hunter**:
-- Uses ~80% of CPU threads
-- High priority process
-- Maximum performance mining
-- Best for idle time/overnight
-
-### GUI Controls
-
-1. **Launch GUI**: `onyx_miner_gui.py` or find in applications menu
-2. **Status Panel**: Shows mode, threads, hashrate, uptime, pool
-3. **Control Buttons**: 
-   - Green "Background Mining" - Start low-impact mining
-   - Blue "Money Hunter" - Start high-performance mining  
-   - Red "Stop Mining" - Stop all mining
-4. **Log Panel**: Real-time daemon logs and status messages
+Or from terminal:
+```bash
+onyx-monero-dashboard
+```
 
 ### Daemon Management
-
 ```bash
-# Start daemon
-sudo systemctl start onyx-monero-daemon
+# Check status
+systemctl --user status onyx-monero-daemon
 
-# Enable on boot (daemon starts but doesn't mine)
-sudo systemctl enable onyx-monero-daemon
-
-# Check status  
-sudo systemctl status onyx-monero-daemon
+# Start/stop daemon
+systemctl --user start onyx-monero-daemon
+systemctl --user stop onyx-monero-daemon
 
 # View logs
-journalctl -u onyx-monero-daemon -f
-
-# Stop daemon
-sudo systemctl stop onyx-monero-daemon
+journalctl --user -u onyx-monero-daemon -f
 ```
 
-### Manual Operation
-
+### Configuration
+Edit mining configuration:
 ```bash
-# Run daemon in foreground (for testing)
-./onyx_miner_daemon.py --foreground
-
-# Test GUI without systemd
-./onyx_miner_gui.py
+nano ~/.onyx_monero/config.json
 ```
 
-## IPC API
+## Architecture
 
-The daemon exposes a JSON-based API over Unix socket:
+### System Components
 
-```json
-// Get status
-{"cmd": "status"}
-
-// Start mining
-{"cmd": "start", "mode": "background"}
-{"cmd": "start", "mode": "money_hunter"}
-
-// Stop mining  
-{"cmd": "stop"}
-
-// Configuration
-{"cmd": "config_get"}
-{"cmd": "config_set", "wallet": "...", "pool": "...", "worker": "..."}
-
-// System info
-{"cmd": "system_info"}
-{"cmd": "ping"}
+```
+┌─────────────────┐    Unix Socket    ┌─────────────────┐
+│   PyQt6 GUI     │ ←──────────────→  │   Daemon        │
+│                 │                   │   Service       │
+│ • Controls      │                   │                 │
+│ • Status        │                   │ • XMrig Control │
+│ • Configuration │                   │ • State Mgmt    │
+└─────────────────┘                   │ • IPC Server    │
+                                      └─────────────────┘
+                                              │
+                                              ▼
+                                      ┌─────────────────┐
+                                      │     XMrig       │
+                                      │   Process       │
+                                      └─────────────────┘
 ```
 
-## File Structure
-
+### File Structure
 ```
 onyx-monero-dashboard/
-├── daemon/                      # Background daemon package
-│   ├── config.py               # Configuration management  
-│   ├── state.py                # Mining state tracking
-│   ├── controller.py           # XMrig process control
-│   └── server.py               # IPC server
-├── gui/                         # GUI client package
-│   ├── theme.py                # Arctic Terminal theme
-│   ├── ipc_client.py           # Daemon communication  
-│   └── main_window.py          # Main interface
-├── onyx_miner_daemon.py        # Daemon entry point
-├── onyx_miner_gui.py           # GUI entry point
-├── onyx-monero-daemon.service  # Systemd service
-├── install.sh                  # Professional installer
-└── README.md                   # This file
+├── daemon/                 # Daemon package
+│   ├── __init__.py
+│   ├── config.py          # Configuration management
+│   ├── controller.py      # XMrig process control
+│   ├── server.py          # IPC server
+│   └── state.py           # State management
+├── gui/                   # GUI package  
+│   ├── __init__.py
+│   ├── ipc_client.py      # IPC client
+│   ├── main_window.py     # Main window
+│   └── theme.py           # UI theming
+├── onyx_miner_daemon.py   # Daemon entry point
+├── onyx_gui_clean.py      # Clean GUI implementation
+├── install.sh             # Installation script
+└── README.md              # This file
 ```
 
-## Security & Safety
+### Configuration Files
+- `~/.onyx_monero/config.json` - Mining configuration
+- `~/.onyx_monero/daemon.sock` - IPC socket
+- `~/.onyx_monero/daemon.log` - Daemon logs
+- `~/.onyx_monero/xmrig.log` - Mining logs
 
-### Safe Boot Behavior
-- ✅ Daemon can be enabled on boot
-- ✅ Daemon starts in "stopped" state
-- ❌ **Mining NEVER starts automatically**  
-- ✅ Mining only begins with explicit GUI command
+## Mining Configuration
 
-### Process Security
-- Dedicated `onyx-miner` system user
-- Secure file permissions (0600/0700)
-- Clean process termination with SIGTERM/SIGKILL
-- No zombie processes
-- Comprehensive error handling
-
-### Configuration Security  
-- Wallet address validation
-- Pool URL format checking
-- Secure config file storage
-- Input sanitization
-
-## Troubleshooting
-
-### Daemon Won't Start
-```bash
-# Check service status
-sudo systemctl status onyx-monero-daemon
-
-# View detailed logs  
-journalctl -u onyx-monero-daemon -n 50
-
-# Check dependencies
-python3 -c "import PyQt6, psutil; print('Dependencies OK')"
+Default configuration supports SupportXMR pool:
+```json
+{
+    "wallet_address": "YOUR_WALLET_ADDRESS",
+    "pool_url": "pool.supportxmr.com:443",
+    "worker_name": "onyx-miner",
+    "use_ssl": true,
+    "profile_name": "Default Profile"
+}
 ```
 
-### GUI Can't Connect
-```bash
-# Verify daemon is running
-sudo systemctl status onyx-monero-daemon
+## Technical Specifications
 
-# Check socket exists
-ls -la /home/onyx-miner/.onyx_monero/daemon.sock
+### CPU Thread Management
+- **Background Mode**: 50% of available threads with nice priority +10
+- **Money Hunter Mode**: 80% of available threads with nice priority 0
+- **Automatic Detection**: System CPU core count automatically detected
+- **Resource Limits**: Daemon memory limited to 512MB via systemd
 
-# Test daemon connectivity
-echo '{"cmd":"ping"}' | nc -U /home/onyx-miner/.onyx_monero/daemon.sock
-```
+### Security Features
+- **User Service**: Runs under user context, not system-wide
+- **Process Isolation**: XMrig runs in separate process with monitoring
+- **Socket Permissions**: Unix socket with user-only access (700)
+- **No Privileged Access**: No sudo or root privileges required
 
-### XMrig Not Found  
-```bash
-# Install XMrig
-# NixOS: nix-shell -p xmrig  
-# Ubuntu: apt install xmrig
-# Arch: pacman -S xmrig
-
-# Verify installation
-which xmrig
-xmrig --version
-```
-
-### Configuration Issues
-```bash
-# Check config file
-sudo cat /home/onyx-miner/.onyx_monero/config.json
-
-# Validate wallet address format (starts with 4)
-# Validate pool URL includes port
-
-# Reset to defaults
-sudo rm /home/onyx-miner/.onyx_monero/config.json
-sudo systemctl restart onyx-monero-daemon
-```
-
-### Permission Problems
-```bash  
-# Fix ownership
-sudo chown -R onyx-miner:onyx-miner /home/onyx-miner/.onyx_monero
-
-# Fix permissions
-sudo chmod 700 /home/onyx-miner/.onyx_monero
-sudo chmod 600 /home/onyx-miner/.onyx_monero/*
-```
-
-## Performance
-
-### Resource Usage
-
-| Component | CPU Impact | Memory | 
-|-----------|------------|--------|
-| **Daemon** | <1% | ~20MB |
-| **GUI** | <2% | ~30MB |  
-| **Background Mining** | 50% threads | Variable |
-| **Money Hunter** | 80% threads | Variable |
-
-### Thread Allocation
-
-CPU threads are automatically detected and allocated:
-
-- **Background**: `max(1, cpu_count * 0.5)` threads, priority 1
-- **Money Hunter**: `max(1, cpu_count * 0.8)` threads, priority 3
-
-Example on 72-thread system:
-- Background: 36 threads
-- Money Hunter: 58 threads
+### Performance Monitoring
+- **Real-time Status**: Live mining status and thread utilization
+- **System Information**: CPU, memory, and thermal monitoring
+- **Hashrate Tracking**: Performance metrics and uptime statistics
+- **Error Tracking**: Comprehensive error logging and reporting
 
 ## Development
 
-### Requirements
-- Python 3.8+
-- PyQt6
-- psutil  
-- XMrig (runtime)
+### Dependencies
+- **Python 3.12+** with packages:
+  - PyQt6 (GUI framework)
+  - psutil (system monitoring)
+  - Standard library (json, socket, threading, etc.)
+- **XMrig** (mining software)
+- **systemd** (service management)
 
 ### Testing
 ```bash
-# Run daemon in debug mode
-./onyx_miner_daemon.py --foreground
+# Test daemon communication
+python3 -c "import socket, json; sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM); sock.connect('/home/$USER/.onyx_monero/daemon.sock'); sock.send(json.dumps({'cmd': 'ping'}).encode()); print(sock.recv(1024).decode())"
 
-# Run GUI in development mode  
-./onyx_miner_gui.py
-
-# Test IPC manually
-echo '{"cmd":"status"}' | nc -U ~/.onyx_monero/daemon.sock
+# Check service status
+systemctl --user status onyx-monero-daemon
 ```
 
-### Code Structure
-- **Clean separation**: Daemon, GUI, IPC, themes
-- **Error handling**: Comprehensive exception management  
-- **Logging**: Structured logging with rotation
-- **Thread safety**: All state operations protected
+## Deployment Notes
 
-## Contributing
+### For Job Interviews / Professional Use
+- **Clean Architecture**: Demonstrates understanding of daemon services, IPC, and GUI frameworks
+- **Production Ready**: Includes proper error handling, logging, and service management
+- **NixOS Integration**: Shows modern Linux distribution knowledge
+- **Security Conscious**: User-space deployment without privilege escalation
+- **Professional Presentation**: Clean code, documentation, and deployment automation
 
-1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push branch (`git push origin feature/amazing-feature`)  
-5. Open Pull Request
+### Scaling Considerations
+- **Multi-user**: Can be deployed per-user on shared systems
+- **Configuration Management**: JSON-based configuration for easy automation
+- **Monitoring Integration**: Structured logging compatible with log aggregation systems
+- **Resource Limits**: Built-in memory and CPU limits for production deployment
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+Proprietary software developed by Onyx Digital Intelligence Development.
 
 ## Support
 
-**Issues**: https://github.com/oskodiak/onyx-monero-dashboard/issues  
-**Documentation**: This README  
-**Contact**: Onyx Digital Intelligence Development
+For enterprise deployment or customization inquiries, contact Onyx Digital Intelligence Development.
 
 ---
 
-**Onyx Digital Intelligence Development**  
-*Professional mining control solutions*
+*Professional Monero mining control for modern Linux environments.*

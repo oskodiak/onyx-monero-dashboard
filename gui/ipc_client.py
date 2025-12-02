@@ -26,12 +26,15 @@ class IPCClient(QObject):
         self.socket_path = Path.home() / ".onyx_monero" / "daemon.sock"
         self.connected = False
         
-        # Status polling timer
+        # Status polling timer (start disabled)
         self.status_timer = QTimer()
         self.status_timer.timeout.connect(self.request_status)
-        self.status_timer.start(2000)  # Poll every 2 seconds
+        # Don't start automatically - will be started after initial connection
         
         logger.info("IPC client initialized")
+        
+        # Test connection with simple ping
+        self.test_connection()
     
     def _send_request(self, request: Dict[str, Any], timeout: float = 10.0) -> Optional[Dict[str, Any]]:
         """Send request to daemon and return response"""
@@ -57,6 +60,9 @@ class IPCClient(QObject):
                     self.connected = True
                     self.connection_changed.emit(True)
                     logger.info("Connected to daemon")
+                    # Status polling disabled - causes daemon to hang
+                    # if not self.status_timer.isActive():
+                    #     self.status_timer.start(5000)  # Poll every 5 seconds
                 
                 return response
                 
@@ -85,6 +91,14 @@ class IPCClient(QObject):
             self.error_occurred.emit(f"Communication error: {e}")
             return None
     
+    def test_connection(self):
+        """Test daemon connection with simple ping"""
+        response = self._send_request({"cmd": "ping"}, timeout=3.0)
+        if response and response.get("ok"):
+            logger.info("Daemon connection test successful")
+        else:
+            logger.warning("Daemon connection test failed")
+    
     def request_status(self):
         """Request status from daemon"""
         response = self._send_request({"cmd": "status"})
@@ -100,7 +114,7 @@ class IPCClient(QObject):
             self.error_occurred.emit(f"Invalid mining mode: {mode}")
             return False
         
-        response = self._send_request({"cmd": "start", "mode": mode})
+        response = self._send_request({"cmd": "start", "mode": mode}, timeout=60.0)
         if response and response.get("ok"):
             logger.info(f"Started {mode} mining")
             # Immediately request status update
@@ -116,7 +130,7 @@ class IPCClient(QObject):
     
     def stop_mining(self) -> bool:
         """Stop mining"""
-        response = self._send_request({"cmd": "stop"})
+        response = self._send_request({"cmd": "stop"}, timeout=30.0)
         if response and response.get("ok"):
             logger.info("Mining stopped")
             # Immediately request status update

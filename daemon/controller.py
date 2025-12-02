@@ -58,9 +58,9 @@ class XMrigController:
             logger.error("Cannot start mining in STOPPED mode")
             return False
         
-        # Stop any existing mining
+        # Stop any existing mining (quick stop for mode switches)
         if self.is_mining():
-            self.stop_mining("Starting new mode")
+            self._quick_stop_mining("Starting new mode")
         
         # Calculate threads and priority
         threads, priority = self.state.calculate_threads_for_mode(mode)
@@ -111,6 +111,48 @@ class XMrigController:
             logger.error(f"Failed to start xmrig: {e}")
             return False
     
+    def _quick_stop_mining(self, reason: str = "Quick stop") -> bool:
+        """Quick stop mining process without waiting for graceful shutdown"""
+        if not self.is_mining():
+            return True
+        
+        logger.info(f"Quick stopping mining: {reason}")
+        
+        try:
+            # Signal monitoring thread to stop
+            self.stop_monitoring.set()
+            
+            # Force kill xmrig process immediately
+            if self.xmrig_process:
+                pid = self.xmrig_process.pid
+                
+                try:
+                    # Force kill immediately for quick mode switch
+                    os.killpg(os.getpgid(pid), signal.SIGKILL)
+                    logger.info(f"XMrig PID {pid} force killed for quick restart")
+                        
+                except ProcessLookupError:
+                    # Process already dead
+                    logger.info(f"XMrig PID {pid} already terminated")
+                
+                self.xmrig_process = None
+            
+            # Wait for monitor thread to finish (short timeout for quick stop)
+            if self.monitor_thread and self.monitor_thread.is_alive():
+                self.monitor_thread.join(timeout=0.5)
+            
+            # Update state
+            self.state.stop_mining(reason)
+            
+            logger.info("Mining quick stopped successfully")
+            return True
+            
+        except Exception as e:
+            error_msg = f"Error quick stopping mining: {e}"
+            logger.error(error_msg)
+            self.state.set_error(error_msg)
+            return False
+
     def stop_mining(self, reason: str = "User requested") -> bool:
         """Stop mining and cleanup"""
         if not self.is_mining():
@@ -188,12 +230,15 @@ class XMrigController:
         """Get detailed mining status"""
         status = self.state.get_status_dict()
         
-        # Add system info
-        status.update({
-            "cpu_info": SystemInfo.get_cpu_info(),
-            "memory_info": SystemInfo.get_memory_info(),
-            "thermal_info": SystemInfo.get_thermal_info()
-        })
+        # Add basic system info (thermal disabled due to hanging)
+        try:
+            status.update({
+                "cpu_info": SystemInfo.get_cpu_info(),
+                "memory_info": SystemInfo.get_memory_info()
+                # "thermal_info": SystemInfo.get_thermal_info()  # Disabled - causes hanging
+            })
+        except Exception as e:
+            logger.warning(f"System info unavailable: {e}")
         
         return status
     

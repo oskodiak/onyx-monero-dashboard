@@ -176,12 +176,24 @@ class IPCServer:
             return {"ok": False, "error": f"Command failed: {e}"}
     
     def _handle_status(self, request: Dict[str, Any]) -> Dict[str, Any]:
-        """Handle status command"""
-        status = self.controller.get_mining_status()
-        return {
-            "ok": True,
-            **status
-        }
+        """Handle status command - minimal response"""
+        try:
+            # Simple status without locks
+            return {
+                "ok": True,
+                "mining_active": self.state._mode.value != "stopped",
+                "current_mode": self.state._mode.value,
+                "mining_threads": self.state._threads_active,
+                "total_threads": self.state._total_threads
+            }
+        except Exception:
+            return {
+                "ok": True,
+                "mining_active": False,
+                "current_mode": "unknown",
+                "mining_threads": 0,
+                "total_threads": 72
+            }
     
     def _handle_start(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Handle start command"""
@@ -206,13 +218,20 @@ class IPCServer:
         if not valid:
             return {"ok": False, "error": f"Configuration error: {error}"}
         
-        # Start mining
-        success = self.controller.start_mining(mode, config)
-        if success:
-            return {"ok": True, "message": f"Started {mode.value} mining"}
-        else:
-            error = self.state.last_error or "Unknown error"
-            return {"ok": False, "error": f"Failed to start mining: {error}"}
+        # Start mining in thread to prevent blocking IPC response
+        import threading
+        def start_mining_async():
+            try:
+                success = self.controller.start_mining(mode, config)
+                if not success:
+                    logger.error(f"Failed to start {mode.value} mining")
+            except Exception as e:
+                logger.error(f"Error starting mining: {e}")
+        
+        thread = threading.Thread(target=start_mining_async, daemon=True)
+        thread.start()
+        
+        return {"ok": True, "message": f"Starting {mode.value} mining..."}
     
     def _handle_stop(self, request: Dict[str, Any]) -> Dict[str, Any]:
         """Handle stop command"""

@@ -223,22 +223,33 @@ class SystemInfo:
     def get_thermal_info() -> Dict[str, Any]:
         """Get thermal information if available"""
         try:
-            temps = psutil.sensors_temperatures()
-            if not temps:
-                return {}
+            import signal
+            def timeout_handler(signum, frame):
+                raise TimeoutError("Thermal sensor read timeout")
+            
+            # Set 2-second timeout for thermal reading
+            signal.signal(signal.SIGALRM, timeout_handler)
+            signal.alarm(2)
+            
+            try:
+                temps = psutil.sensors_temperatures()
+                if not temps:
+                    return {}
+                    
+                thermal_info = {}
+                for name, entries in temps.items():
+                    if entries:
+                        avg_temp = sum(entry.current for entry in entries) / len(entries)
+                        thermal_info[name] = {
+                            "current_c": round(avg_temp, 1),
+                            "sensors": len(entries)
+                        }
                 
-            thermal_info = {}
-            for name, entries in temps.items():
-                if entries:
-                    avg_temp = sum(entry.current for entry in entries) / len(entries)
-                    thermal_info[name] = {
-                        "current_c": round(avg_temp, 1),
-                        "sensors": len(entries)
-                    }
+                return thermal_info
+            finally:
+                signal.alarm(0)  # Disable alarm
             
-            return thermal_info
-            
-        except Exception as e:
+        except (TimeoutError, Exception) as e:
             logger.debug(f"Thermal sensors not available: {e}")
             return {}
     
