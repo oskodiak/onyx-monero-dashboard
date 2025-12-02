@@ -1,51 +1,49 @@
 # Onyx Monero Mining Dashboard
 
-**Professional XMrig mining controller with intelligent resource management for Linux/NixOS systems.**
+**XMrig mining controller with intelligent resource management for Linux/NixOS systems.**
 
 *Developed by Onyx Digital Intelligence Development*
 
 ## Overview
 
-The Onyx Monero Mining Dashboard provides enterprise-grade control over XMrig mining operations with a focus on system stability, user experience, and professional deployment. Features intelligent CPU load balancing, background daemon architecture, and a modern PyQt6 interface.
+A daemon-based XMrig mining controller featuring intelligent CPU load balancing and a PyQt6 interface. Designed for stable mining operations with professional deployment practices.
 
 ## Key Features
 
-### 🎛️ **Intelligent Mining Modes**
-- **Background Mode**: 50% CPU utilization with low process priority - designed for mining during work hours without impacting productivity
-- **Money Hunter Mode**: 80% CPU utilization with optimized priority - maximum earning potential during idle periods
-- **Clean Stop**: Ensures proper XMrig process termination and system cleanup
+### **Mining Modes**
+- **Background Mode**: 50% CPU utilization with low process priority
+- **Money Hunter Mode**: 80% CPU utilization with optimized priority
+- **Clean Stop**: Proper XMrig process termination and system cleanup
 
-### 🏗️ **Professional Architecture**
-- **Daemon Service**: Background service with systemd integration and automatic startup
+### **Architecture**
+- **Daemon Service**: Background service with systemd integration
 - **IPC Communication**: Unix socket-based communication between GUI and daemon
 - **Thread Safety**: Robust state management with proper locking mechanisms
 - **Error Handling**: Comprehensive error handling and recovery mechanisms
 
-### 🖥️ **Modern Interface**
+### **Interface**
 - **PyQt6 GUI**: Clean, responsive interface with real-time status updates
-- **System Tray**: Runs in background with system tray integration
 - **Professional Styling**: Dark theme optimized for extended use
 - **Configuration Display**: Live wallet and pool configuration visibility
 
-### 🔧 **Enterprise Deployment**
+### **Deployment**
 - **Single Command Install**: Automated installation with dependency verification
 - **NixOS Integration**: Native support for NixOS declarative package management  
 - **User Service**: Runs as user service (not system-wide) for security
 - **Desktop Integration**: Full desktop environment integration with application menu entries
 
-## Quick Installation
+## Installation
 
 ### Prerequisites
-- **NixOS**: Add to your `configuration.nix`:
+**NixOS**: Add to your `configuration.nix`:
 ```nix
 (python3.withPackages (ps: with ps; [
   pyqt6 psutil tkinter requests bcrypt pysocks
-  # ... other packages as needed
 ]))
 xmrig
 ```
 
-### Installation
+### Quick Install
 ```bash
 git clone https://github.com/oskodiak/onyx-monero-dashboard.git
 cd onyx-monero-dashboard
@@ -118,7 +116,7 @@ onyx-monero-dashboard/
 │   ├── main_window.py     # Main window
 │   └── theme.py           # UI theming
 ├── onyx_miner_daemon.py   # Daemon entry point
-├── onyx_gui_clean.py      # Clean GUI implementation
+├── onyx_miner_gui.py      # GUI implementation
 ├── install.sh             # Installation script
 └── README.md              # This file
 ```
@@ -158,7 +156,7 @@ Default configuration supports SupportXMR pool:
 
 ### Performance Monitoring
 - **Real-time Status**: Live mining status and thread utilization
-- **System Information**: CPU, memory, and thermal monitoring
+- **System Information**: CPU, memory monitoring
 - **Hashrate Tracking**: Performance metrics and uptime statistics
 - **Error Tracking**: Comprehensive error logging and reporting
 
@@ -181,16 +179,15 @@ python3 -c "import socket, json; sock = socket.socket(socket.AF_UNIX, socket.SOC
 systemctl --user status onyx-monero-daemon
 ```
 
-## Deployment Notes
+## Technical Implementation Notes
 
-### For Job Interviews / Professional Use
+### **Architecture Highlights**
 - **Clean Architecture**: Demonstrates understanding of daemon services, IPC, and GUI frameworks
 - **Production Ready**: Includes proper error handling, logging, and service management
 - **NixOS Integration**: Shows modern Linux distribution knowledge
 - **Security Conscious**: User-space deployment without privilege escalation
-- **Professional Presentation**: Clean code, documentation, and deployment automation
 
-### Scaling Considerations
+### **Deployment Considerations**
 - **Multi-user**: Can be deployed per-user on shared systems
 - **Configuration Management**: JSON-based configuration for easy automation
 - **Monitoring Integration**: Structured logging compatible with log aggregation systems
@@ -198,12 +195,8 @@ systemctl --user status onyx-monero-daemon
 
 ## License
 
-Proprietary software developed by Onyx Digital Intelligence Development.
-
-## Support
-
-For enterprise deployment or customization inquiries, contact Onyx Digital Intelligence Development.
+Developed by Onyx Digital Intelligence Development.
 
 ---
 
-*Professional Monero mining control for modern Linux environments.*
+*Monero mining control for modern Linux environments.*
